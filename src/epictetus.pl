@@ -74,12 +74,10 @@ command(Command) :-
     server(_, _, channel(Channel)),
     read_term_from_chars(Chars, Term, [syntax_errors(quiet), variable_names(Names)]),
     call(Term),
-%    write('YES').
      write_variable_to(Channel, Names).
 command(Command) :-
     append(_ , _, Command),
     server(_, _, channel(Channel)),
-%    write('No.').
     write_to_channel(Channel, "No.").
 
 respond(Request) :-
