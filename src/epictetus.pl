@@ -51,19 +51,24 @@ write_to_channel(Channel, String) :-
     append(B, String, Msg),
     write_to_stream(Msg).
 
-write_variable_to(Channel, []) :-
+write_variables_to(Channel, []) :-
     write_to_channel(Channel, "Yes.").
-write_variable_to(Channel, [H]) :-
+write_variables_to(Channel, [H]) :-
     swritef(Var, '%w', [H]),
     string_concat(Var, '.', S),
     string_to_list(S, List),
     write_to_channel(Channel, List).
-write_variable_to(Channel, [H|T]) :-
+write_variables_to(Channel, [H|T]) :-
     swritef(Var, '%w', [H]),
     string_concat(Var, ',', S),
     string_to_list(S, List),
     write_to_channel(Channel, List),
-    write_variable_to(Channel, T).
+    write_variables_to(Channel, T).
+
+evaluate(Term, Names) :-
+    open_chars_stream(Term, Stream),
+    read_term(Stream, H, [syntax_error(quite), variable_names(Names)]),
+    call(H).
 
 command(Command) :-
     append("share a quote", _, Command),
@@ -72,9 +77,8 @@ command(Command) :-
 command(Command) :-
     append("evaluate ", Chars, Command),
     server(_, _, channel(Channel)),
-    read_term_from_chars(Chars, Term, [syntax_errors(quiet), variable_names(Names)]),
-    call(Term),
-     write_variable_to(Channel, Names).
+    evaluate(Chars, Variables),
+    write_variables_to(Channel, Variables).
 command(Command) :-
     append(_ , _, Command),
     server(_, _, channel(Channel)),
