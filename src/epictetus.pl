@@ -69,11 +69,20 @@ write_variables_to(Channel, [H|T]) :-
     write_to_channel(Channel, List),
     write_variables_to(Channel, T).
 
+:- dynamic(quote/1).
+quote(Quote) :-
+    open('quotes', read, Stream),
+    read_lines(Stream, Quotes),
+    asserta(quote(Q) :- random_member(Q, Quotes)),
+    close(Stream),
+    !, quote(Quote).
 
 command(Command) :-
     append("share a quote", _, Command),
-    write_to_channel(Channel, "You are a little soul carrying around a corpse.").
     server(_,_, _, channel(Channel)),
+    quote(Quote),
+    atom_codes(Quote, String),
+    write_to_channel(Channel, String).
 command(Command) :-
     append("evaluate ", Chars, Command),
     server(_,_, _, channel(Channel)),
