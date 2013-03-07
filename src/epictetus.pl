@@ -77,18 +77,18 @@ quote(Quote) :-
 
 command(Command) :-
     append("share a quote", _, Command),
-    server(_,_, _, channel(Channel)),
+    server(_, _, _, channel(Channel)),
     quote(Quote),
     atom_codes(Quote, String),
     write_to_channel(Channel, String).
 command(Command) :-
     append("evaluate ", Chars, Command),
-    server(_,_, _, channel(Channel)),
+    server(_, _, _, channel(Channel)),
     evaluate(Chars, Variables),
     write_variables_to(Channel, Variables).
 command(Command) :-
     append(_ , _, Command),
-    server(_,_, _, channel(Channel)),
+    server(_, _, _, channel(Channel)),
     write_to_channel(Channel, "No.").
 
 respond(Request) :-
@@ -97,7 +97,7 @@ respond(Request) :-
     write_to_stream(Msg).
 respond(Request) :-
     append(_, ":+ix", Request),
-    server(_,_, _, channel(Channel)),
+    server(_, _, _, channel(Channel)),
     join_channel(Channel).
 respond(Request) :-
     append(_, B, Request),
