@@ -39,11 +39,6 @@ send_info(Nick) :-
     append(B, Nick, MsgUser),
     write_to_stream(MsgUser).
 
-irc_connect :-
-    server(nick(Nick), host(Host), port(Port), _),
-    connect(Host, Port),
-    send_info(Nick).
-
 join_channel(Channel) :-
     connectedWriteStream(OStream),
     append("JOIN ", Channel, MsgJoin),
@@ -110,6 +105,12 @@ read_irc :-
     writef("Recieved: %s\n", [In]),
     ignore(respond(In)),
     read_irc.
+
+irc_connect :-
+    server(nick(Nick), host(Host), port(Port), _),
+    connect(Host, Port),
+    send_info(Nick),
+    thread_create((irc_read), _, []).
 
 close :-
     connectedWriteStream(OStream),
