@@ -1,5 +1,7 @@
-nick("epictetus").
-server(host('irc.codetalk.io'), port(6667), channel("#lobby")).
+server(nick("epictetus"),
+       host('irc.codetalk.io'),
+       port(6667),
+       channel("#lobby")).
 
 connect(Host, Port) :-
     tcp_socket(Socket),
@@ -35,9 +37,8 @@ send_info(Nick) :-
     write_to_stream(MsgUser).
 
 irc_connect :-
-    server(host(Host), port(Port), _),
+    server(nick(Nick), host(Host), port(Port), _),
     connect(Host, Port),
-    nick(Nick),
     send_info(Nick).
 
 join_channel(Channel) :-
@@ -72,16 +73,16 @@ evaluate(Term, Names) :-
 
 command(Command) :-
     append("share a quote", _, Command),
-    server(_, _, channel(Channel)),
     write_to_channel(Channel, "You are a little soul carrying around a corpse.").
+    server(_,_, _, channel(Channel)),
 command(Command) :-
     append("evaluate ", Chars, Command),
-    server(_, _, channel(Channel)),
+    server(_,_, _, channel(Channel)),
     evaluate(Chars, Variables),
     write_variables_to(Channel, Variables).
 command(Command) :-
     append(_ , _, Command),
-    server(_, _, channel(Channel)),
+    server(_,_, _, channel(Channel)),
     write_to_channel(Channel, "No.").
 
 respond(Request) :-
@@ -90,7 +91,7 @@ respond(Request) :-
     write_to_stream(Msg).
 respond(Request) :-
     append(_, ":+ix", Request),
-    server(_, _, channel(Channel)),
+    server(_,_, _, channel(Channel)),
     join_channel(Channel).
 respond(Request) :-
     append(_, B, Request),
