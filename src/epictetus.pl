@@ -1,3 +1,6 @@
+:- module(epictetus, []).
+:- use_module(sandbox).
+
 server(nick("epictetus"),
        host('irc.codetalk.io'),
        port(6667),
@@ -66,10 +69,6 @@ write_variables_to(Channel, [H|T]) :-
     write_to_channel(Channel, List),
     write_variables_to(Channel, T).
 
-evaluate(Term, Names) :-
-    open_chars_stream(Term, Stream),
-    read_term(Stream, H, [syntax_error(quite), variable_names(Names)]),
-    call(H).
 
 command(Command) :-
     append("share a quote", _, Command),
