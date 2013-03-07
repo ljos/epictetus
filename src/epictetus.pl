@@ -55,7 +55,7 @@ write_variables_to(Channel, []) :-
 write_variables_to(Channel, [H]) :-
     atom_codes(H, S),
     string_concat(S, '.', String),
-    write_to_channel(Channel, ).
+    write_to_channel(Channel, String).
 write_variables_to(Channel, [H|T]) :-
     atom_codes(H, S),
     append(S, ',', String),
