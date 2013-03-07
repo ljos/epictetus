@@ -58,15 +58,13 @@ write_to_channel(Channel, String) :-
 write_variables_to(Channel, []) :-
     write_to_channel(Channel, "Yes.").
 write_variables_to(Channel, [H]) :-
-    swritef(Var, '%w', [H]),
-    string_concat(Var, '.', S),
-    string_to_list(S, List),
-    write_to_channel(Channel, List).
+    atom_codes(H, S),
+    string_concat(S, '.', String),
+    write_to_channel(Channel, ).
 write_variables_to(Channel, [H|T]) :-
-    swritef(Var, '%w', [H]),
-    string_concat(Var, ',', S),
-    string_to_list(S, List),
-    write_to_channel(Channel, List),
+    atom_codes(H, S),
+    append(S, ',', String),
+    write_to_channel(Channel, String),
     write_variables_to(Channel, T).
 
 :- dynamic(quote/1).
