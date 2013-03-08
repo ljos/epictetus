@@ -28,8 +28,18 @@ chk_whitelist([H|T]) :-
     check_whitelist(H),
     chk_whitelist(T), !.
 
+:- dynamic(fact/1).
+fact(man(epictetus)).
+
 check_whitelist(Term) :-
     var(Term); atomic(Term); is_list(Term).
+check_whitelist(Term) :-
+    Term =.. [assert | [A]],
+    A =.. [Predicate | _],
+    assert(fact(Fact)).
+check_whitelist(Term) :-
+    Term =.. [Fact | _],
+    fact(Fact).
 check_whitelist(Term) :-
     Term =.. [H|T],
     length(T, N),
