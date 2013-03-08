@@ -66,4 +66,4 @@ evaluate(Chars, Variables) :-
            call_with_time_limit(1, Term),
            exclude(underscore, Names, Variables)),
           Error,
-          (handle_error(Error, Variables), !)).
+          handle_error(Error, Variables)).
