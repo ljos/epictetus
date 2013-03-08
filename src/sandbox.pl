@@ -35,7 +35,7 @@ check_whitelist(Term) :-
     var(Term); atomic(Term); is_list(Term).
 check_whitelist(Term) :-
     Term =.. [assert | [A]],
-    A =.. [Predicate | _],
+    A =.. [Fact | _],
     assert(fact(Fact)).
 check_whitelist(Term) :-
     Term =.. [Fact | _],
