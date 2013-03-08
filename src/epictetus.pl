@@ -110,7 +110,7 @@ irc_connect :-
     server(nick(Nick), host(Host), port(Port), _),
     connect(Host, Port),
     send_info(Nick),
-    thread_create((irc_read), _, []).
+    thread_create(read_irc, _, [alias(read_irc_thread)]).
 
 close :-
     connectedWriteStream(OStream),
