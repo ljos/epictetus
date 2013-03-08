@@ -52,6 +52,7 @@ write_to_channel(Channel, String) :-
 
 write_variables_to(Channel, []) :-
     write_to_channel(Channel, "Yes.").
+write_variables_to(Channel, [error(syntax_error)]).
 write_variables_to(Channel, [H]) :-
     swritef(S, '%w', [H]),
     atom_codes(S, C),
@@ -79,14 +80,13 @@ command(Command) :-
     atom_codes(Quote, String),
     write_to_channel(Channel, String).
 command(Command) :-
-    append("evaluate ", Chars, Command),
     server(_, _, _, channel(Channel)),
-    evaluate(Chars, Variables),
-    write_variables_to(Channel, Variables).
-command(Command) :-
-    append(_ , _, Command),
-    server(_, _, _, channel(Channel)),
-    write_to_channel(Channel, "No.").
+    (evaluate(Command, Vars),
+     write_variables_to(Channel, Vars);
+     % if evaluate fails we should return No.
+     % does not fail on syntax_error or timeout,
+     % those are handled by write_variables_to.
+     write_to_channel(Channel, "No.")).
 
 respond(Request) :-
     append("PING :", Value, Request),
@@ -97,8 +97,10 @@ respond(Request) :-
     server(_, _, _, channel(Channel)),
     join_channel(Channel).
 respond(Request) :-
-    append(_, B, Request),
-    append(":epictetus, ", Command, B),
+    append(A, B, Request),
+    append(_, "PRIVMSG", A),
+    append(_ , ":", C),
+    append(C, Command, B),
     command(Command).
 
 read_irc :-

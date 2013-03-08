@@ -35,9 +35,14 @@ check_whitelist(Term) :-
     whitelist(H, N),
     chk_whitelist(T), !.
 
-evaluate(Chars, Names) :-
-    open_chars_stream(Chars, Stream),
-    read_term(Stream, Term, [syntax_errors(quiet), variable_names(Names)]),
-    close(Stream),
-    check_whitelist(Term),
-    call_with_time_limit(5, Term).
+evaluate(Chars, Variables) :-
+    catch((open_chars_stream(Chars, Stream),
+           read_term(Stream, Term, [variable_names(Names)]),
+           close(Stream),
+           check_whitelist(Term),
+           call_with_time_limit(10, Term)),
+          Error,
+          ((Error =.. [error, Err|_],
+            Err =.. [syntax_error|_],
+            Variables = [error(syntax_error)]), !;
+           Variables = [error(Error)], !)).
