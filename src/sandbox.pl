@@ -56,9 +56,9 @@ evaluate(Chars, Variables) :-
            close(Stream),
            check_whitelist(Term),
            call_with_time_limit(10, Term),
-           exclude(underscore, Names, Variables))),
+           exclude(underscore, Names, Variables)),
           Error,
           ((Error =.. [error, Err|_],
             Err =.. [syntax_error|_],
-            Variables = [error(syntax_error)]), !;
+            Variables = [error(syntax_error)], !);
            Variables = [error(Error)], !)).
