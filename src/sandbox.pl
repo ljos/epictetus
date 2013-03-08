@@ -46,12 +46,17 @@ check_whitelist(Term) :-
     whitelist(H, N),
     chk_whitelist(T), !.
 
+underscore(V) :-
+    V =.. [=, F, _],
+    string_concat('_', _, F).
+
 evaluate(Chars, Variables) :-
     catch((open_chars_stream(Chars, Stream),
            read_term(Stream, Term, [variable_names(Names)]),
            close(Stream),
            check_whitelist(Term),
-           call_with_time_limit(10, Term)),
+           call_with_time_limit(10, Term),
+           exclude(underscore, Names, Variables))),
           Error,
           ((Error =.. [error, Err|_],
             Err =.. [syntax_error|_],
