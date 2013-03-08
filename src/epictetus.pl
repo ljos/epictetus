@@ -2,11 +2,10 @@
 :- use_module(sandbox).
 
 server(nick("epictetus"),
-       host('irc.codetalk.io'),
-       port(6667),
+       host('irc.codetalk.io':6667),
        channel("#lobby")).
 
-connect(Host, Port) :-
+connect(Host:Port) :-
     tcp_socket(Socket),
     tcp_connect(Socket, Host:Port),
     tcp_open_socket(Socket, INs, OUTs),
@@ -65,7 +64,7 @@ write_variables_to(Channel, [H|T]) :-
     write_to_channel(Channel, String),
     write_variables_to(Channel, T).
 command(Command) :-
-    server(_, _, _, channel(Channel)),
+    server(_, _, channel(Channel)),
     (evaluate(Command, Vars),
      write_variables_to(Channel, Vars);
      % if evaluate fails we should return No.
@@ -79,7 +78,7 @@ respond(Request) :-
     write_to_stream(Msg).
 respond(Request) :-
     append(_, ":+ix", Request),
-    server(_, _, _, channel(Channel)),
+    server(_, _, channel(Channel)),
     join_channel(Channel).
 respond(Request) :-
     append(A, B, Request),
@@ -96,8 +95,8 @@ read_irc :-
     read_irc.
 
 irc_connect :-
-    server(nick(Nick), host(Host), port(Port), _),
-    connect(Host, Port),
+    server(nick(Nick), host(Host), _),
+    connect(Host),
     send_info(Nick),
     thread_create(read_irc, _, [alias(read_irc_thread)]).
 
