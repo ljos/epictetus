@@ -64,21 +64,6 @@ write_variables_to(Channel, [H|T]) :-
     append(C, ",", String),
     write_to_channel(Channel, String),
     write_variables_to(Channel, T).
-
-:- dynamic(quote/1).
-quote(Quote) :-
-    open('quotes', read, Stream),
-    read_lines(Stream, Quotes),
-    asserta(quote(Q) :- random_member(Q, Quotes)),
-    close(Stream),
-    !, quote(Quote).
-
-command(Command) :-
-    append("share a quote", _, Command),
-    server(_, _, _, channel(Channel)),
-    quote(Quote),
-    atom_codes(Quote, String),
-    write_to_channel(Channel, String).
 command(Command) :-
     server(_, _, _, channel(Channel)),
     (evaluate(Command, Vars),
