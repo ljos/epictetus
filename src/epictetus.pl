@@ -37,7 +37,7 @@ send_info(Nick) :-
     append("USER ", Nick, A),
     append(A, " 0 * :", B),
     append(B, Nick, MsgUser),
-    write_to_stream(MsgUser).
+    write_to_stream(MsgUser), !.
 
 join_channel(Channel) :-
     connectedWriteStream(OStream),
