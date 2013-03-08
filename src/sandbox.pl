@@ -45,20 +45,25 @@ check_whitelist(Term) :-
     length(T, N),
     whitelist(H, N),
     chk_whitelist(T), !.
+check_whitelist(Term) :-
+    Term =.. [H|T],
+    length(T, N),
+    throw(security_error(H/N)).
 
 underscore(V) :-
     V =.. [=, F, _],
     string_concat('_', _, F).
+
+handle_error(error(syntax_error(_), _), [error(syntax_error)]).
+handle_error(error(existence_error(_, _), _), [error(existence_error)]).
+handle_error(time_limit_exceeded, [error(time_limit_exceeded)]).
 
 evaluate(Chars, Variables) :-
     catch((open_chars_stream(Chars, Stream),
            read_term(Stream, Term, [variable_names(Names)]),
            close(Stream),
            check_whitelist(Term),
-           call_with_time_limit(10, Term),
+           call_with_time_limit(1, Term),
            exclude(underscore, Names, Variables)),
           Error,
-          ((Error =.. [error, Err|_],
-            Err =.. [syntax_error|_],
-            Variables = [error(syntax_error)], !);
-           Variables = [error(Error)], !)).
+          (handle_error(Error, Variables), !)).
