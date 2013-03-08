@@ -95,14 +95,18 @@ read_irc :-
     ignore(respond(In)),
     read_irc.
 
-irc_connect :-
-    server(nick(Nick), host(Host), _),
-    connect(Host),
-    send_info(Nick),
-    thread_create(read_irc, _, [alias(read_irc_thread)]).
-
 close :-
     connectedWriteStream(OStream),
     close(OStream),
     connectedReadStream(IStream),
     close(IStream).
+
+irc_connect :-
+    server(nick(Nick), host(Host), _),
+    connect(Host),
+    send_info(Nick),
+    thread_create((catch(read_irc,_, _)),
+                  _,
+                  [alias(read_irc_thread),
+                   detached(true),
+                   at_exit(close)]).
