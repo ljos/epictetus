@@ -16,7 +16,7 @@ connect(Host, Port) :-
     write(Host),
     write(' on port '),
     write(Port),
-    writeln('.').
+    writeln('.'), !.
 
 write_to_stream(String) :-
     connectedWriteStream(OStream),
