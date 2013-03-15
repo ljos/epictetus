@@ -1,3 +1,4 @@
+findall/3
 string_concat/3
 quote/1
 (=)/2
