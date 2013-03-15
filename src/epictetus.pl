@@ -1,16 +1,13 @@
 :- module(epictetus, []).
 :- use_module(sandbox).
-
-server(nick("epictetus"),
-       host('irc.codetalk.io':6667),
-       channel("#lobby")).
+:- consult(config).
 
 connect(Host:Port) :-
     tcp_socket(Socket),
     tcp_connect(Socket, Host:Port),
     tcp_open_socket(Socket, INs, OUTs),
-    assert(connectedReadStream(INs)),
-    assert(connectedWriteStream(OUTs)),
+    assert(read_stream(Host:Port, INs)),
+    assert(write_stream(Host:Port, OUTs)),
     write('Connected to '),
     write(Host),
     write(' on port '),
@@ -18,7 +15,8 @@ connect(Host:Port) :-
     writeln('.'), !.
 
 write_to_stream(String) :-
-    connectedWriteStream(OStream),
+    server(_, host(Host), _),
+    write_stream(Host, OStream),
     write_to_stream(OStream, String).
 write_to_stream(Stream, String) :-
     atomic(String),
@@ -39,7 +37,8 @@ send_info(Nick) :-
     write_to_stream(MsgUser), !.
 
 join_channel(Channel) :-
-    connectedWriteStream(OStream),
+    server(_, host(Host), _),
+    write_stream(Host, OStream),
     append("JOIN ", Channel, MsgJoin),
     write_to_stream(OStream, MsgJoin).
 
@@ -64,6 +63,7 @@ write_variables_to(Channel, [H|T]) :-
     append(C, ",", String),
     write_to_channel(Channel, String),
     write_variables_to(Channel, T).
+
 command(Command) :-
     server(_, _, channel(Channel)),
     (evaluate(Command, Vars),
@@ -89,24 +89,25 @@ respond(Request) :-
     command(Command).
 
 read_irc :-
-    connectedReadStream(IStream),
+    server(_, host(Host), _),
+    read_stream(Host, IStream),
     read_line_to_codes(IStream, In),
     writef("Recieved: %s\n", [In]),
     ignore(respond(In)),
     read_irc.
 
-close :-
-    connectedWriteStream(OStream),
+close_streams(Host) :-
+    write_stream(Host, OStream),
     close(OStream),
-    connectedReadStream(IStream),
+    read_stream(Host, IStream),
     close(IStream).
 
 irc_connect :-
     server(nick(Nick), host(Host), _),
     connect(Host),
     send_info(Nick),
-    thread_create((catch(read_irc,_, _)),
+    thread_create(catch(read_irc,_, write('Read aborted.')),
                   _,
                   [alias(read_irc_thread),
                    detached(true),
-                   at_exit(close)]).
+                   at_exit(close_streams(Host))]).
