@@ -2,6 +2,9 @@
 :- use_module(sandbox).
 :- consult(config).
 
+:- volatile(read_stream/2).
+:- volatile(write_stream/2).
+
 connect(Host:Port) :-
     tcp_socket(Socket),
     tcp_connect(Socket, Host:Port),
@@ -110,3 +113,6 @@ irc_connect :-
                   [alias(read_irc_thread),
                    detached(true),
                    at_exit(close_streams(Host))]).
+
+save :-
+    qsave_program('epictetus').
