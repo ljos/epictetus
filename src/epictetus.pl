@@ -50,10 +50,13 @@ write_to_channel(Channel, String) :-
     append(B, String, Msg),
     write_to_stream(Msg).
 
-write_variables_to(Channel, []) :-
-    write_to_channel(Channel, "Yes.").
 write_variables_to(_, [error(syntax_error)]).
 write_variables_to(_, [error(existence_error)]).
+write_variables_to(_, [error(not_at_end_of_stream)]).
+write_variables_to(_, [error(time_limit_exceeded)]).
+write_variables_to(_, [error(_,_)]).
+write_variables_to(Channel, []) :-
+    write_to_channel(Channel, "Yes.").
 write_variables_to(Channel, [H]) :-
     swritef(S, '%w', [H]),
     atom_codes(S, C),

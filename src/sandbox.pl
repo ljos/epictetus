@@ -49,13 +49,16 @@ underscore(V) :-
 handle_error(error(syntax_error(_), _), [error(syntax_error)]).
 handle_error(error(existence_error(_, _), _), [error(existence_error)]).
 handle_error(time_limit_exceeded, [error(time_limit_exceeded)]).
+handle_error(Error, [Error]).
 
 evaluate(Chars, Variables) :-
     catch((open_chars_stream(Chars, Stream),
            read_term(Stream, Term, [variable_names(Names)]),
+           (at_end_of_stream(Stream);
+            throw(error(not_at_end_of_stream))),
            close(Stream),
-           check_whitelist(Term),
-           call_with_time_limit(1, Term),
+           check_whitelist(Term, SafePredicate),
+           call_with_time_limit(1, SafePredicate),
            exclude(underscore, Names, Variables)),
           Error,
-          handle_error(Error, Variables)).
+          handle_error(Error, Variables)), !.
