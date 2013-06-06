@@ -56,7 +56,7 @@ evaluate(Chars, Variables) :-
            read_term(Stream, Term, [variable_names(Names)]),
            (at_end_of_stream(Stream);
             throw(error(not_at_end_of_stream))),
-           close(Stream),
+           close(Stream),!,
            check_whitelist(Term, SafePredicate),
            call_with_time_limit(1, SafePredicate),
            exclude(underscore, Names, Variables)),
