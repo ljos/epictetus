@@ -23,32 +23,24 @@ whitelist(F, A) :-
     whitelist(Whitelist),
     member(F/A, Whitelist), !.
 
-chk_whitelist([]).
-chk_whitelist([H|T]) :-
-    check_whitelist(H),
-    chk_whitelist(T), !.
+chk_whitelist([], []).
+chk_whitelist([H|T], [Term|Tail]) :-
+    check_whitelist(H, Term),
+    chk_whitelist(T, Tail), !.
 
-:- dynamic(fact/1).
-fact(man(epictetus)).
-
-check_whitelist(Term) :-
+check_whitelist(Term, Term) :-
     var(Term); atomic(Term); is_list(Term).
-check_whitelist(Term) :-
-    Term =.. [assert | [A]],
-    A =.. [Fact | _],
-    assert(fact(Fact)).
-check_whitelist(Term) :-
-    Term =.. [Fact | _],
-    fact(Fact).
-check_whitelist(Term) :-
-    Term =.. [H|T],
-    length(T, N),
-    whitelist(H, N),
-    chk_whitelist(T), !.
-check_whitelist(Term) :-
-    Term =.. [H|T],
-    length(T, N),
-    throw(security_error(H/N)).
+check_whitelist(Term, Predicate) :-
+    Term =.. [Name | Parameters],
+    length(Parameters, N),
+    whitelist(Name, N),
+    chk_whitelist(Parameters, SafeParams),
+    Predicate =.. [Name | SafeParams].
+check_whitelist(Term, Predicate) :-
+    Term =.. [Name | Parameters],
+    atom_concat(sandbox_, Name, SafeName),
+    chk_whitelist(Parameters, SafeParams),
+    Predicate =.. [SafeName | SafeParams].
 
 underscore(V) :-
     V =.. [=, F, _],
