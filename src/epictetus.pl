@@ -22,8 +22,7 @@ write_to_stream(Stream, String) :-
     atomic(String),
     write(Stream, String),
     nl(Stream),
-    flush_output(Stream),
-    writef("Sent:     %t\n", [String]).
+    flush_output(Stream).
 write_to_stream(Stream, String) :-
     swritef(Out, '%s', [String]),
     write_to_stream(Stream, Out).
@@ -92,7 +91,7 @@ read_irc :-
     server(_, host(Host), _),
     read_stream(Host, IStream),
     read_line_to_codes(IStream, In),
-    writef("Recieved: %s\n", [In]),
+%    writef("Recieved: %s\n", [In]),
     ignore(respond(In)),
     read_irc.
 
