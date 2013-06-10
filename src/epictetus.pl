@@ -54,6 +54,10 @@ write_variables_to(_, [error(syntax_error)]).
 write_variables_to(_, [error(existence_error)]).
 write_variables_to(_, [error(not_at_end_of_stream)]).
 write_variables_to(_, [error(time_limit_exceeded)]).
+write_variables_to(Channel, [error(instantiation_error,_)]) :-
+    maybe(0.01),
+    write_to_channel(Channel, "... 1,000,000 ............ 10,000,000 years later"),
+    write_to_channel(Channel, "      >> 42 << (last release gives the question)").
 write_variables_to(_, [error(_,_)]).
 write_variables_to(Channel, []) :-
     write_to_channel(Channel, "Yes.").
