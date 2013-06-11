@@ -1,5 +1,5 @@
 :- module(sandbox, [evaluate/2, read_lines/2]).
-:- use_module([quote]).
+:- use_module([quote, markov]).
 
 read_lines(Stream, [H|T]) :-
           read_line_to_codes(Stream, S),
