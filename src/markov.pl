@@ -61,7 +61,7 @@ add_file(File, Atoms) :-
     file_to_lines(File, Lines),
     lines_to_atoms(Lines, Atoms).
 
-:- add_file('a_study_in_scarlet.txt', Atoms), add_atoms(Atoms).
+:- add_file('epictetus.txt', Atoms), add_atoms(Atoms).
 
 markov(Sentence) :-
     bagof(S, markov_start(S), Starts),
