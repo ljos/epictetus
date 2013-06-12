@@ -1,9 +1,9 @@
 :- module(markov, [markov/1]).
 
-ko(C) :- code_type(C, space).
-ok(C) :- \+ ko(C).
+space(C) :- code_type(C, space).
+ok(C) :- \+ space(C).
 
-blanks([C]) --> [C], { ko(C) }, blanks.
+blanks([C]) --> [C], { space(C) }, blanks.
 blanks --> [].
 
 inwords([C|Cs]) --> [C], { ok(C) }, inwords(Cs).
@@ -13,10 +13,9 @@ split_str([H|T]) --> blanks, inwords(H), blanks, !, split_str(T).
 split_str([], _, _).
 
 split_codes([], []).
-split_codes(Codes, Sentence) :-
-    (append(" ", Rest, Codes);
-     append("\t", Rest, Codes)),
-    split_codes(Rest, Sentence).
+split_codes([H|T], Sentence) :-
+    space(H),
+    split_codes(T, Sentence).
 split_codes(Codes, [Word | Sentence]) :-
     phrase(split_str([W]), Codes),
     append(W, Rest, Codes),
