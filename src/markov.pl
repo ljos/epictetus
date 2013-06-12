@@ -72,7 +72,4 @@ markov(Word, [Word|Rest]) :-
     bagof(N, markov_edge(Word, N), Nexts),
     random_member(Next, Nexts),
     markov(Next, Rest).
-markov(W, [Word]) :-
-    Ends = ['.', '!', '?'],
-    member(End, Ends),
-    atom_concat(Word, End, W).
+markov(Word, [Word]).
