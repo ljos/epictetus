@@ -38,13 +38,13 @@ lines_to_atoms([H|T], Atoms) :-
     lines_to_atoms(T, Rest),
     append(Sentence, Rest, Atoms).
 
-:- dynamic(markov_edge/2).
-:- dynamic(markov_start/1).
-
 end_of_sentence(Word) :-
     Ends = ['.', '!', '?'],
     member(End, Ends),
     atom_concat(_, End, Word), !.
+
+:- dynamic(markov_edge/2).
+:- dynamic(markov_start/1).
 
 add_atoms([_]).
 add_atoms([H,S|T]) :-
