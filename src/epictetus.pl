@@ -63,8 +63,7 @@ write_variables_to(Channel, []) :-
     write_to_channel(Channel, "Yes.").
 write_variables_to(Channel, [H]) :-
     swritef(S, '%w', [H]),
-    atom_codes(S, C),
-    append(C, ".", String),
+    atom_codes(S, String),
     write_to_channel(Channel, String).
 write_variables_to(Channel, [H|T]) :-
     swritef(S, '%w', [H]),
