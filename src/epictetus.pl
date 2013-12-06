@@ -100,7 +100,6 @@ read_irc :-
     server(_, host(Host), _),
     read_stream(Host, IStream),
     read_line_to_codes(IStream, In),
-%    writef("Recieved: %s\n", [In]),
     ignore(respond(In)),
     read_irc.
 
