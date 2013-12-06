@@ -75,11 +75,11 @@ write_variables_to(Channel, [H|T]) :-
 command(Command) :-
     server(_, _, channel(Channel)),
     (evaluate(Command, Vars),
-     write_variables_to(Channel, Vars);
+     write_variables_to(Channel, Vars)
      % if evaluate fails we should return No.
      % does not fail on syntax_error or timeout,
      % those are handled by write_variables_to.
-     write_to_channel(Channel, "No.")).
+    ;write_to_channel(Channel, "No.")).
 
 respond(Request) :-
     append("PING :", Value, Request),
