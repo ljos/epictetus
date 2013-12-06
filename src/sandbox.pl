@@ -2,10 +2,10 @@
 :- use_module([quote, markov]).
 
 read_lines(Stream, [H|T]) :-
-          read_line_to_codes(Stream, S),
-          S \= end_of_file,
-          string_to_atom(S, H),
-          read_lines(Stream, T), !.
+    read_line_to_codes(Stream, S),
+    S \= end_of_file,
+    string_to_atom(S, H),
+    read_lines(Stream, T), !.
 read_lines(_, []) :- !.
 
 terms_to_atoms([], []).
@@ -14,10 +14,10 @@ terms_to_atoms([H|T], [F|R]) :-
     terms_to_atoms(T, R).
 
 :- open('whitelist', read, Stream),
-   read_lines(Stream, Lines),
-   terms_to_atoms(W, Lines),
-   asserta(whitelist(W)),
-   close(Stream).
+    read_lines(Stream, Lines),
+    terms_to_atoms(W, Lines),
+    asserta(whitelist(W)),
+    close(Stream).
 :- compile_predicates([whitelist/1]).
 whitelist(F, A) :-
     whitelist(Whitelist),
@@ -47,9 +47,10 @@ underscore(V) :-
     string_concat('_', _, F).
 
 save_predicate(Predicate) :-
-	tell('history'),
-	writeln(Predicate),
-	told, !.
+    append('history'),
+    write(Predicate),
+    writeln('.'),
+    told, !.
 
 handle_error(error(syntax_error(_), _), [error(syntax_error)]).
 handle_error(error(existence_error(_, _), _), [error(existence_error)]).
@@ -64,7 +65,7 @@ evaluate(Chars, Variables) :-
            close(Stream),!, % cut to not backtrack to a closed stream.
            check_whitelist(Term, SafePredicate),
            call_with_time_limit(1, SafePredicate),
-	   save_predicate(SafePredicate),
+           save_predicate(SafePredicate),
            exclude(underscore, Names, Variables)),
           Error,
           handle_error(Error, Variables)), !.
