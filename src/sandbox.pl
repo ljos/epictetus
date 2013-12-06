@@ -68,3 +68,12 @@ evaluate(Chars, Variables) :-
            exclude(underscore, Names, Variables)),
           Error,
           handle_error(Error, Variables)), !.
+
+load_predicates(Stream) :-
+    (at_end_of_stream(Stream);
+     read_term(Stream, Term, []),
+     ignore(call_with_time_limit(1, Term)), !,
+     load_predicates(Stream)).
+
+:- open('history', read, Stream),
+    load_predicates(Stream).
