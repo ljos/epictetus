@@ -46,6 +46,11 @@ underscore(V) :-
     V =.. [=, F, _],
     string_concat('_', _, F).
 
+save_predicate(Predicate) :-
+	tell('history'),
+	writeln(Predicate),
+	told, !.
+
 handle_error(error(syntax_error(_), _), [error(syntax_error)]).
 handle_error(error(existence_error(_, _), _), [error(existence_error)]).
 handle_error(time_limit_exceeded, [error(time_limit_exceeded)]).
@@ -59,6 +64,7 @@ evaluate(Chars, Variables) :-
            close(Stream),!, % cut to not backtrack to a closed stream.
            check_whitelist(Term, SafePredicate),
            call_with_time_limit(1, SafePredicate),
+	   save_predicate(SafePredicate),
            exclude(underscore, Names, Variables)),
           Error,
           handle_error(Error, Variables)), !.
