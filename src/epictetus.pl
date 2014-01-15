@@ -74,11 +74,11 @@ write_variables_to(Channel, [H|T]) :-
     write_variables_to(Channel, T).
 
 command(msg(_, _, Command)) :-
-    server(_, _, channel(Channel))
+    server(_, _, channel(Channel)),
     parse_message(Command, Response),
     write_to_channel(Channel, Response).
 command(msg(_, _, Command)) :-
-    server(_, _, channel(Channel))
+    server(_, _, channel(Channel)),
     evaluate(Command, Vars),
     write_variables_to(Channel, Vars).
 command(msg(_, _, Command)) :-
