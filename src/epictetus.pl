@@ -73,10 +73,12 @@ write_variables_to(Channel, [H|T]) :-
     write_to_channel(Channel, String),
     write_variables_to(Channel, T).
 
-command(Command) :-
+command(msg(_, _, Command)) :-
     server(_, _, channel(Channel)),
-    (evaluate(Command, Vars),
-     write_variables_to(Channel, Vars)
+    ((parse_message(Command, Response),
+      write_to_channel(Channel, Response)
+     ;evaluate(Command, Vars),
+      write_variables_to(Channel, Vars))
      % if evaluate fails we should return No.
      % does not fail on syntax_error or timeout,
      % those are handled by write_variables_to.

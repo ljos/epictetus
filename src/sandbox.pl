@@ -1,5 +1,11 @@
 :- module(sandbox, [evaluate/2, read_lines/2]).
-:- use_module([quote, markov]).
+:- use_module([quote, markov, library(dcg/basics)]).
+
+:- dynamic parse/3.
+parse(_, _, _)  :- fail.
+
+parse_message(Message, Response) :-
+    phrase(parse(Response), Message).
 
 read_lines(Stream, [H|T]) :-
     read_line_to_codes(Stream, S),
@@ -30,6 +36,10 @@ chk_whitelist([H|T], [Term|Tail]) :-
 
 check_whitelist(Term, Term) :-
     var(Term); atomic(Term); is_list(Term).
+check_whitelist(T, Predicate) :-
+    T =.. [(-->) | _],
+    dcg_translate_rule(T, Term),
+    check_whitelist(Term, Predicate).
 check_whitelist(Term, Predicate) :-
     Term =.. [Name | Parameters],
     length(Parameters, N),
@@ -48,8 +58,9 @@ underscore(V) :-
 
 save_predicate(Predicate) :-
     append('history'),
-    write(Predicate),
-    writeln('.'),
+    write_term(Predicate, [quoted(true)]),
+    write('.'),
+    nl,
     told, !.
 
 handle_error(error(syntax_error(_), _), [error(syntax_error)]).
