@@ -1,4 +1,5 @@
 :- module(epictetus, []).
+:- use_module(library(dcg/basics)).
 :- use_module(sandbox).
 :- consult(config).
 
@@ -81,20 +82,26 @@ command(Command) :-
      % those are handled by write_variables_to.
     ;write_to_channel(Channel, "No.")).
 
+%      P  O  N  G ' ' :
+ping([80,79,78,71,32,58|Value]) --> "PING :", nonblanks(Value).
+
+message(msg(From, To, Message)) -->
+    ":", string(From), "!", string(_),
+    blank, "PRIVMSG", blank, string(To), blank,
+    ":", string(Message).
+
+connection --> string(_), "+ix", string(_).
+
 respond(Request) :-
-    append("PING :", Value, Request),
-    append("PONG :", Value, Msg),
-    write_to_stream(Msg).
+    phrase(ping(Pong), Request),
+    write_to_stream(Pong).
 respond(Request) :-
-    append(_, ":+ix", Request),
+    phrase(connection, Request),
     server(_, _, channel(Channel)),
     join_channel(Channel).
 respond(Request) :-
-    append(A, B, Request),
-    append(_, "PRIVMSG", A),
-    append(_ , ":", C),
-    append(C, Command, B),
-    command(Command).
+    phrase(message(Message), Request),
+    command(Message).
 
 read_irc :-
     server(_, host(Host), _),
