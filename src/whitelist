@@ -1,5 +1,6 @@
 (!)/0
 (',')/2
+('.')/2
 (*)/2
 (+)/2
 (-)/2
@@ -46,6 +47,8 @@ nonvar/1
 number/1
 number/3
 parse/3
+phrase/2
+phrase/3
 quote/1
 rational/1
 repeat/0
