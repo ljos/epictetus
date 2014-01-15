@@ -74,15 +74,19 @@ write_variables_to(Channel, [H|T]) :-
     write_variables_to(Channel, T).
 
 command(msg(_, _, Command)) :-
+    server(_, _, channel(Channel))
+    parse_message(Command, Response),
+    write_to_channel(Channel, Response).
+command(msg(_, _, Command)) :-
+    server(_, _, channel(Channel))
+    evaluate(Command, Vars),
+    write_variables_to(Channel, Vars).
+command(msg(_, _, Command)) :-
+% if evaluate fails we should return No.
+% does not fail on syntax_error or timeout,
+% those are handled by write_variables_to.
     server(_, _, channel(Channel)),
-    ((parse_message(Command, Response),
-      write_to_channel(Channel, Response)
-     ;evaluate(Command, Vars),
-      write_variables_to(Channel, Vars))
-     % if evaluate fails we should return No.
-     % does not fail on syntax_error or timeout,
-     % those are handled by write_variables_to.
-    ;write_to_channel(Channel, "No.")).
+    write_to_channel(Channel, "No.").
 
 %      P  O  N  G ' ' :
 ping([80,79,78,71,32,58|Value]) --> "PING :", nonblanks(Value).
