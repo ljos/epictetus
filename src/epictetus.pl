@@ -81,7 +81,7 @@ command(msg(_, _, Command)) :-
     server(_, _, channel(Channel)),
     evaluate(Command, Vars),
     write_variables_to(Channel, Vars).
-command(msg(_, _, Command)) :-
+command(msg(_, _, _)) :-
 % if evaluate fails we should return No.
 % does not fail on syntax_error or timeout,
 % those are handled by write_variables_to.
