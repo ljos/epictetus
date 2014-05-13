@@ -123,11 +123,21 @@ close_streams(Host) :-
     read_stream(Host, IStream),
     close(IStream).
 
-irc_connect :-
+connect :-
     server(nick(Nick), host(Host), _),
     connect(Host),
     send_info(Nick),
-    thread_create(catch(read_irc,_, write('Read aborted.')),
+    catch(read_irc,
+          Error,
+          (format('Connection lost:~n'),
+           print_message(error, Error),
+           ignore(close_streams(Host)),
+           sleep(1),
+           format('~nReconnecting...~n'),
+           connect)).
+
+irc_connect :-
+    thread_create(connect,
                   _,
                   [alias(read_irc_thread),
                    detached(true),
