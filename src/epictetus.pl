@@ -140,8 +140,7 @@ irc_connect :-
     thread_create(connect,
                   _,
                   [alias(read_irc_thread),
-                   detached(true),
-                   at_exit(close_streams(Host))]).
+                   detached(true)]).
 
 save :-
     qsave_program('epictetus').
