@@ -88,9 +88,9 @@ command(msg(_, _, _)) :-
     server(_, _, channel(Channel)),
     write_to_channel(Channel, "No.").
 
-%       P   O     N    G   ' '   :
-ping([0'P, 0'O, 0'N, 0'G, 0' , 0': |Value]) --> %'
-    "PING :", nonblanks(Value).
+ping(Result) -->
+    "PING :", nonblanks(Value),
+    { append("PONG :", Value, Result) }.
 
 message(msg(From, To, Message)) -->
     ":", string(From), "!", string(_),
