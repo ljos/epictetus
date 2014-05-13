@@ -1,66 +1,46 @@
 :- module(markov, [markov/1]).
-
-space(C) :- code_type(C, space).
-ok(C) :- \+ space(C).
-
-blanks([C]) --> [C], { space(C) }, blanks.
-blanks --> [].
-
-inwords([C|Cs]) --> [C], { ok(C) }, inwords(Cs).
-inwords([C]) --> [C], { ok(C) }.
-
-split_str([H|T]) --> blanks, inwords(H), blanks, !, split_str(T).
-split_str([], _, _).
-
-split_codes([], []).
-split_codes([H|T], Sentence) :-
-    space(H),
-    split_codes(T, Sentence).
-split_codes(Codes, [Word | Sentence]) :-
-    phrase(split_str([W]), Codes),
-    append(W, Rest, Codes),
-    atom_codes(Word, W),
-    split_codes(Rest, Sentence).
-
-read_lines(Stream, [Line|T]) :-
-    read_line_to_codes(Stream, Line),
-    Line \= end_of_file,
-    !, read_lines(Stream, T).
-read_lines(_, []) :- !.
-
-file_to_lines(File, Lines) :-
-    open(File, read, Stream),
-    read_lines(Stream, Lines).
-
-lines_to_atoms([], []).
-lines_to_atoms([H|T], Atoms) :-
-    split_codes(H, Sentence),
-    lines_to_atoms(T, Rest),
-    append(Sentence, Rest, Atoms).
-
-end_of_sentence(Word) :-
-    Ends = ['.', '!', '?'],
-    member(End, Ends),
-    atom_concat(_, End, Word), !.
+:- use_module(library(dcg/basics)).
 
 :- dynamic(markov_edge/2).
 :- dynamic(markov_start/1).
 
-add_atoms([_]).
-add_atoms([H,S|T]) :-
-    \+ end_of_sentence(H),
-    assert(markov_edge(H,S)),
-    add_atoms([S|T]).
-add_atoms([H,S|T]) :-
-    end_of_sentence(H),
-    assert(markov_start(S)),
-    add_atoms([S|T]).
+punct([P|S], S) :-
+    char_type(P, period).
 
-add_file(File, Atoms) :-
-    file_to_lines(File, Lines),
-    lines_to_atoms(Lines, Atoms).
+char(C) -->
+    nonblank(C),
+    {
+     not(char_type(C, period))
+    }.
 
-:- add_file('epictetus.txt', Atoms), add_atoms(Atoms).
+chars([C | Cs]) --> char(C), chars(Cs), !.
+chars([C]) --> char(C).
+
+sentence([]) --> punct.
+sentence([Word | Words]) -->
+    chars(Chars), blanks, sentence(Words),
+    {
+     atom_codes(Word, Chars)
+    }.
+
+sentences([]) --> eos.
+sentences([S]) --> sentence(S).
+sentences([S | Ss]) --> sentence(S), blanks, sentences(Ss).
+
+assert_chain(W1, W0, W1) :-
+    assert(markov_edge(W0, W1)).
+
+assert_markov([]).
+assert_markov([Start|Rest]) :-
+    assert(markov_start(Start)),
+    foldl(assert_chain, Rest, Start, _).
+
+add_file(File) :-
+    read_file_to_codes(File, Codes, []),
+    phrase(sentences(Sentences), Codes),!,
+    maplist(assert_markov, Sentences).
+
+:- add_file('epictetus.txt').
 
 markov(Sentence) :-
     bagof(S, markov_start(S), Starts),
