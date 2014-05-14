@@ -1,5 +1,9 @@
-:- module(sandbox, [evaluate/2, read_lines/2, parse_message/2]).
-:- use_module([quote, markov, library(dcg/basics)]).
+:- module(sandbox, [evaluate/2,
+                    read_lines/2,
+                    parse_message/2]).
+:- use_module(quote).
+:- use_module(markov).
+:- use_module(library(dcg/basics)).
 
 :- dynamic parse/3.
 parse(_, _, _)  :- fail.
