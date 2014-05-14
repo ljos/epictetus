@@ -141,6 +141,3 @@ irc_connect :-
                   _,
                   [alias(read_irc_thread),
                    detached(true)]).
-
-save :-
-    qsave_program('epictetus').
