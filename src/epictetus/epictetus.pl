@@ -12,11 +12,7 @@ connect(Host:Port) :-
     tcp_open_socket(Socket, INs, OUTs),
     assert(read_stream(Host:Port, INs)),
     assert(write_stream(Host:Port, OUTs)),
-    write('Connected to '),
-    write(Host),
-    write(' on port '),
-    write(Port),
-    writeln('.'), !.
+    format('Connected to ~s on port ~s.~n', [Host, Port]), !.
 
 write_to_stream(String) :-
     server(_, host(Host), _),
