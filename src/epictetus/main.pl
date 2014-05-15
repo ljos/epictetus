@@ -1,4 +1,4 @@
-:- module(epictetus, []).
+:- module(main, []).
 :- use_module(library(dcg/basics)).
 :- use_module(sandbox).
 :- consult(config).
@@ -78,9 +78,9 @@ command(msg(_, _, Command)) :-
     evaluate(Command, Vars),
     write_variables_to(Channel, Vars).
 command(msg(_, _, _)) :-
-% if evaluate fails we should return No.
-% does not fail on syntax_error or timeout,
-% those are handled by write_variables_to.
+                                % if evaluate fails we should return No.
+                                % does not fail on syntax_error or timeout,
+                                % those are handled by write_variables_to.
     server(_, _, channel(Channel)),
     write_to_channel(Channel, "No.").
 
@@ -132,7 +132,7 @@ connect :-
            format('~nReconnecting...~n'),
            connect)).
 
-irc_connect :-
+main :-
     thread_create(connect,
                   _,
                   [alias(read_irc_thread),
