@@ -3,134 +3,92 @@
 :- use_module(sandbox).
 :- consult(config).
 
-:- volatile(read_stream/2).
-:- volatile(write_stream/2).
-
-connect(Host:Port) :-
-    tcp_socket(Socket),
-    tcp_connect(Socket, Host:Port),
-    tcp_open_socket(Socket, INs, OUTs),
-    assert(read_stream(Host:Port, INs)),
-    assert(write_stream(Host:Port, OUTs)),
-    format('Connected to ~s on port ~s.~n', [Host, Port]), !.
-
-write_to_stream(String) :-
-    server(_, host(Host), _),
-    write_stream(Host, OStream),
-    write_to_stream(OStream, String).
-write_to_stream(Stream, String) :-
-    atomic(String),
-    write(Stream, String),
-    nl(Stream),
-    flush_output(Stream).
-write_to_stream(Stream, String) :-
-    swritef(Out, '%s', [String]),
-    write_to_stream(Stream, Out).
-
-send_info(Nick) :-
-    append("NICK ", Nick, MsgNick),
-    write_to_stream(MsgNick),
-    append("USER ", Nick, A),
-    append(A, " 0 * :", B),
-    append(B, Nick, MsgUser),
-    write_to_stream(MsgUser), !.
-
-join_channel(Channel) :-
-    server(_, host(Host), _),
-    write_stream(Host, OStream),
-    append("JOIN ", Channel, MsgJoin),
-    write_to_stream(OStream, MsgJoin).
-
-write_to_channel(Channel, String) :-
-    append("PRIVMSG ", Channel, A),
-    append(A, " :", B),
-    append(B, String, Msg),
-    write_to_stream(Msg).
-
 write_variables_to(_, [error(syntax_error)]).
 write_variables_to(_, [error(existence_error)]).
 write_variables_to(_, [error(not_at_end_of_stream)]).
 write_variables_to(_, [error(time_limit_exceeded)]).
 write_variables_to(Channel, [error(instantiation_error,_)]) :-
     maybe(0.01),
-    write_to_channel(Channel, "... 1,000,000 ............ 10,000,000 years later"),
-    write_to_channel(Channel, "      >> 42 << (last release gives the question)").
+    format('PRIVMSG ~s :~s~n',
+           [Channel, "... 1,000,000 ............ 10,000,000 years later"]),
+    format('PRIVMSG ~s :~s~n',
+           [Channel, "      >> 42 << (last release gives the question)"]).
 write_variables_to(_, [error(_,_)]).
 write_variables_to(Channel, []) :-
-    write_to_channel(Channel, "Yes.").
-write_variables_to(Channel, [H]) :-
-    swritef(S, '%w', [H]),
-    atom_codes(S, String),
-    write_to_channel(Channel, String).
-write_variables_to(Channel, [H|T]) :-
-    swritef(S, '%w', [H]),
-    atom_codes(S, C),
-    append(C, ",", String),
-    write_to_channel(Channel, String),
-    write_variables_to(Channel, T).
+    format('PRIVMSG ~s :Yes.~n', [Channel]).
+write_variables_to(Channel, [Var]) :-
+    format('PRIVMSG ~s :~w~n', [Channel, Var]).
+write_variables_to(Channel, [Var|Vars]) :-
+    format('PRIVMSG ~s :~w,~n', [Channel, Var]),
+    write_variables_to(Channel, Vars).
 
-command(msg(_, _, Command)) :-
-    server(_, _, channel(Channel)),
+command(message(Channel, _, Command)) :-
     parse_message(Command, Response),
-    write_to_channel(Channel, Response).
-command(msg(_, _, Command)) :-
-    server(_, _, channel(Channel)),
+    format('PRIVMSG ~s, :~s~n', Channel, Response).
+command(message(Channel, _, Command)) :-
     evaluate(Command, Vars),
     write_variables_to(Channel, Vars).
-command(msg(_, _, _)) :-
-                                % if evaluate fails we should return No.
-                                % does not fail on syntax_error or timeout,
-                                % those are handled by write_variables_to.
-    server(_, _, channel(Channel)),
-    write_to_channel(Channel, "No.").
+command(message(Channel, _, _)) :-
+    %% if evaluate fails we should return No.
+    %% does not fail on syntax_error or timeout,
+    %% those are handled by write_variables_to.
+    format('PRIVMSG ~s :No.~n', [Channel]).
 
-ping(Result) -->
+ping -->
     "PING :", nonblanks(Value),
-    { append("PONG :", Value, Result) }.
+    {
+     format('PONG :~s~n', [Value])
+    }.
 
-message(msg(From, To, Message)) -->
+message(message(Channel, Message)) -->
+    "PRIVMSG ", Channel, " :", Message.
+message(message(From, To, Message)) -->
     ":", string(From), "!", string(_),
     blank, "PRIVMSG", blank, string(To), blank,
     ":", string(Message).
 
-connection --> string(_), "+ix", string(_).
-
 respond(Request) :-
-    phrase(ping(Pong), Request),
-    write_to_stream(Pong).
-respond(Request) :-
-    phrase(connection, Request),
-    server(_, _, channel(Channel)),
-    join_channel(Channel).
+    phrase(ping(Pong), Request).
 respond(Request) :-
     phrase(message(Message), Request),
     command(Message).
 
-read_irc :-
-    server(_, host(Host), _),
-    read_stream(Host, IStream),
-    read_line_to_codes(IStream, In),
-    ignore(respond(In)),
-    read_irc.
+respond :-
+    read_line_to_codes(current_input, Codes),
+    respond(Codes).
 
-close_streams(Host) :-
-    write_stream(Host, OStream),
-    close(OStream),
-    read_stream(Host, IStream),
-    close(IStream).
+join_channel(Channel) :-
+    format('JOIN %s~n', [Channel]).
 
-connect :-
-    server(nick(Nick), host(Host), _),
-    connect(Host),
-    send_info(Nick),
-    catch(read_irc,
+connection --> string(_), "+ix", string(_).
+
+wait_for_connection :-
+    read_line_to_codes(current_input, Codes),
+    (phrase(connection, Codes) ;
+     phrase(ping(Pong), Codes),
+     wait_for_connection ;
+     wait_for_connection).
+
+connect(Nick, Host:Port, Channels) :-
+    tcp_socket(Socket),
+    tcp_connect(Socket, Host:Port),
+    tcp_open_socket(Socket, Input, Output),
+    format('Connected to ~s on port ~s.~n', [Host, Port]),
+    set_input(Input),
+    set_output(Output),
+    format('NICK %s', [Nick]),
+    format('USER %s 0 * :%s', [Nick, Nick]),
+    wait_for_connection,
+    maplist(join_channel, Channels),
+    catch(respond,
           Error,
           (format('Connection lost:~n'),
            print_message(error, Error),
-           ignore(close_streams(Host)),
+           ignore(close(Input)),
+           ignore(close(Output)),
            sleep(1),
-           format('~nReconnecting...~n'),
-           connect)).
+           format('~nReconnectiong...~n'),
+           connect(Nick, Host:Port, Channels))).
 
 main :-
     thread_create(connect,
