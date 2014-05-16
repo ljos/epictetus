@@ -90,8 +90,14 @@ connect(Nick, Host:Port, Channels) :-
            format('~nReconnectiong...~n'),
            connect(Nick, Host:Port, Channels))).
 
-main :-
+start_thread(server(Nick, Host:Port, Channels)) :-
     thread_create(connect,
                   _,
-                  [alias(read_irc_thread),
+                  [alias(Host:Port),
                    detached(true)]).
+
+main :-
+    setof(server(Nick, Host:Port, Channels),
+          server(Nick, Host:Port, Channels),
+          Servers),
+    maplist(start_thread, Servers).
