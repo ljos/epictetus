@@ -90,9 +90,11 @@ connect(Nick, Host:Port, Channels) :-
     flush_output,!,
     catch(respond,
           Error,
-          (format('Connection lost:~n'),
-           print_message(error, Error),
-           ignore(close(Pair)))).
+          (ignore(close(Pair)),
+           set_output(user_output),
+           set_input(user_input),
+           format('Connection lost:~n'),
+           print_message(error, Error))).
 
 
 start_thread(server(Nick, Host:Port, Channels)) :-
