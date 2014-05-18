@@ -80,6 +80,7 @@ connect(Nick, Host:Port, Channels) :-
     tcp_open_socket(Socket, Pair),
     set_input(Pair),
     set_output(Pair),
+    format(user_output, 'Connected to ~s on port ~w.~n', [Host, Port]),
     format('NICK ~s~n', [Nick]),
     flush_output,
     format('USER ~s 0 * :~s~n', [Nick, Nick]),
