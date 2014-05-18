@@ -1,4 +1,4 @@
-:- module(main, []).
+:- module(main, [main/0]).
 :- use_module(library(dcg/basics)).
 :- use_module(sandbox).
 :- consult(config).
@@ -22,13 +22,13 @@ write_variables_to(Channel, [Var|Vars]) :-
     format('PRIVMSG ~s :~w,~n', [Channel, Var]),
     write_variables_to(Channel, Vars).
 
-command(message(Channel, _, Command)) :-
+command(message(_, Channel, Command)) :-
     parse_message(Command, Response),
     format('PRIVMSG ~s, :~s~n', Channel, Response).
-command(message(Channel, _, Command)) :-
+command(message(_, Channel, Command)) :-
     evaluate(Command, Vars),
     write_variables_to(Channel, Vars).
-command(message(Channel, _, _)) :-
+command(message(_, Channel, _)) :-
     %% if evaluate fails we should return No.
     %% does not fail on syntax_error or timeout,
     %% those are handled by write_variables_to.
@@ -37,63 +37,68 @@ command(message(Channel, _, _)) :-
 ping -->
     "PING :", nonblanks(Value),
     {
-     format('PONG :~s~n', [Value])
+     format('PONG :~s~n', [Value]),
+     flush_output
     }.
 
-message(message(Channel, Message)) -->
-    "PRIVMSG ", Channel, " :", Message.
 message(message(From, To, Message)) -->
-    ":", string(From), "!", string(_),
-    blank, "PRIVMSG", blank, string(To), blank,
-    ":", string(Message).
+    ":", string(Sender), "!", nonblanks(_), " PRIVMSG ", string(Reciever), " :",
+    string(Message),
+    {
+     atom_codes(From, Sender),
+     atom_codes(To, Reciever)
+    }.
 
 respond(Request) :-
-    phrase(ping(Pong), Request).
+    phrase(ping, Request).
 respond(Request) :-
     phrase(message(Message), Request),
     command(Message).
 
 respond :-
     read_line_to_codes(current_input, Codes),
-    respond(Codes).
+    ignore(respond(Codes)),
+    flush_output,
+    respond.
 
 join_channel(Channel) :-
-    format('JOIN %s~n', [Channel]).
+    format('JOIN ~s~n', [Channel]).
 
 connection --> string(_), "+ix", string(_).
 
 wait_for_connection :-
     read_line_to_codes(current_input, Codes),
     (phrase(connection, Codes) ;
-     phrase(ping(Pong), Codes),
+     phrase(ping, Codes),
      wait_for_connection ;
+     \+ at_end_of_stream,
      wait_for_connection).
 
 connect(Nick, Host:Port, Channels) :-
     tcp_socket(Socket),
     tcp_connect(Socket, Host:Port),
-    tcp_open_socket(Socket, Input, Output),
-    format('Connected to ~s on port ~s.~n', [Host, Port]),
-    set_input(Input),
-    set_output(Output),
-    format('NICK %s', [Nick]),
-    format('USER %s 0 * :%s', [Nick, Nick]),
+    tcp_open_socket(Socket, Pair),
+    set_input(Pair),
+    set_output(Pair),
+    format('NICK ~s~n', [Nick]),
+    flush_output,
+    format('USER ~s 0 * :~s~n', [Nick, Nick]),
+    flush_output,
     wait_for_connection,
     maplist(join_channel, Channels),
+    flush_output,!,
     catch(respond,
           Error,
           (format('Connection lost:~n'),
            print_message(error, Error),
-           ignore(close(Input)),
-           ignore(close(Output)),
-           sleep(1),
-           format('~nReconnectiong...~n'),
-           connect(Nick, Host:Port, Channels))).
+           ignore(close(Pair)))).
+
 
 start_thread(server(Nick, Host:Port, Channels)) :-
-    thread_create(connect,
+    format(atom(Server), '~s:~w', [Host, Port]),
+    thread_create(connect(Nick, Host:Port, Channels),
                   _,
-                  [alias(Host:Port),
+                  [alias(Server),
                    detached(true)]).
 
 main :-
