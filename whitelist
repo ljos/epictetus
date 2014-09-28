@@ -55,6 +55,7 @@ repeat/0
 retract/1
 reverse/2
 setof/3
+sparql_query/3
 string/1
 string/3
 string_concat/3

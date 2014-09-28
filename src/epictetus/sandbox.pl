@@ -1,9 +1,11 @@
 :- module(sandbox, [evaluate/2,
                     read_lines/2,
                     parse_message/2]).
-:- use_module(quote).
-:- use_module(markov).
-:- use_module(library(dcg/basics)).
+:- use_module([library(dcg/basics),
+               markov,
+               quote]).
+:- use_module(library(semweb/sparql_client),
+              [sparql_query/3]).
 
 :- dynamic parse/3.
 parse(_, _, _)  :- fail.

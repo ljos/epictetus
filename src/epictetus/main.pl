@@ -1,6 +1,7 @@
 :- module(main, [main/0]).
 :- use_module(library(dcg/basics)).
 :- use_module(sandbox).
+
 :- consult(config).
 
 write_variables_to(_, [error(syntax_error)]).
